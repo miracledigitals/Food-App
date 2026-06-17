@@ -2032,4 +2032,20 @@ input[type="checkbox"] {
   }
 }
 
+/* NIFODA Nigerian Accent Styles */
+.badge-nigerian {
+  background-color: #e8f5e9;
+  color: #1b5e20;
+  border: 1px solid #c8e6c9;
+}
+[data-theme="dark"] .badge-nigerian {
+  background-color: #1b3d2f;
+  color: #81c784;
+  border: 1px solid #2e7d32;
+}
+
+#import-segment-nifoda select {
+  cursor: pointer;
+}
+
 

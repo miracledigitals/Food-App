@@ -603,6 +603,8 @@
             <button class="filter-tab" data-filter="High Protein">High Protein</button>
             <button class="filter-tab" data-filter="Meal Prep">Meal Prep</button>
             <button class="filter-tab" data-filter="Vegan">Vegan</button>
+            <button class="filter-tab" data-filter="Nigerian">Nigerian</button>
+            <button class="filter-tab" data-filter="NIFODA"><i class="fa-solid fa-globe" style="margin-right: 4px; color: #1b5e20;"></i>NIFODA Database</button>
             <button class="filter-tab" data-filter="Favorites"><i class="fa-solid fa-heart" style="margin-right: 4px; color: #e63946;"></i>Favorites</button>
           </div>
           
@@ -890,9 +892,10 @@
       <form id="recipe-import-form">
         <div class="modal-body">
           <div style="display: flex; flex-direction: column; gap: 14px;">
-            <div style="display: flex; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-              <button type="button" class="btn btn-sm btn-primary" id="btn-import-tab-scratch" style="border-radius: 4px 0 0 4px; box-shadow: none;">Create From Scratch</button>
-              <button type="button" class="btn btn-sm btn-secondary" id="btn-import-tab-url" style="border-radius: 0 4px 4px 0; box-shadow: none; border-left: none;">Import from URL</button>
+            <div style="display: flex; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; gap: 4px;">
+              <button type="button" class="btn btn-sm btn-primary" id="btn-import-tab-scratch" style="border-radius: var(--radius-md); box-shadow: none; flex: 1;">Create From Scratch</button>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-import-tab-url" style="border-radius: var(--radius-md); box-shadow: none; flex: 1;">Import from URL</button>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-import-tab-nifoda" style="border-radius: var(--radius-md); box-shadow: none; flex: 1;">NIFODA Importer</button>
             </div>
             
             <div id="import-segment-url" style="display: none; flex-direction: column; gap: 10px;">
@@ -902,6 +905,21 @@
                 <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Sous-Chef AI will scrape the page structure and extract ingredients/macros automatically.</div>
               </div>
               <button type="button" class="btn btn-primary" id="btn-trigger-url-scrape" style="width: 100%;">Analyze & Autofill Form</button>
+            </div>
+
+            <div id="import-segment-nifoda" style="display: none; flex-direction: column; gap: 10px;">
+              <div class="form-group">
+                <label class="form-label" for="import-nifoda-select">Select NIFODA Recipe</label>
+                <select class="form-input" id="import-nifoda-select" style="width: 100%;">
+                  <option value="" disabled selected>Choose a Nigerian recipe...</option>
+                  <option value="jollof">Classic Nigerian Jollof Rice</option>
+                  <option value="egusi">Egusi Soup with Pounded Yam</option>
+                  <option value="suya">Spicy Beef Suya</option>
+                  <option value="peppersoup">Nigerian Chicken Pepper Soup</option>
+                </select>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Direct connection to the open-source NIFODA database. Select a dish to pull its full nutritional metrics, ingredients, and instructions.</div>
+              </div>
+              <button type="button" class="btn btn-primary" id="btn-trigger-nifoda-load" style="width: 100%;">Fetch & Load Recipe Details</button>
             </div>
             
             <div id="import-segment-manual" style="display: flex; flex-direction: column; gap: 10px;">
@@ -943,6 +961,7 @@
                     <option value="High Protein" selected>High Protein</option>
                     <option value="Meal Prep">Meal Prep</option>
                     <option value="Vegan">Vegan</option>
+                    <option value="Nigerian">Nigerian</option>
                     <option value="Cheat Day">Cheat Day</option>
                   </select>
                 </div>
