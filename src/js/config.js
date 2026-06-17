@@ -1,6 +1,6 @@
 const Config = {
-  SUPABASE_URL: localStorage.getItem("supabase_url") || "",
-  SUPABASE_KEY: localStorage.getItem("supabase_key") || "",
+  SUPABASE_URL: localStorage.getItem("supabase_url") || "https://gnyddkfaeeonvzbkxinv.supabase.co",
+  SUPABASE_KEY: localStorage.getItem("supabase_key") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdueWRka2ZhZWVvbnZ6Ymt4aW52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2ODg2OTMsImV4cCI6MjA5NzI2NDY5M30.T2gfrW8F8KTAh5oMoGOyRfWKSW17ewBchjvPY4xYxIU",
 
   save(url, key) {
     localStorage.setItem("supabase_url", url.trim());
