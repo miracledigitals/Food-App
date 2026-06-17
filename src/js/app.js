@@ -189,16 +189,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         if (isPageSignUpMode) {
-          await SupabaseService.signUp(email, password, name);
-          alert("Registration successful! Your personal cloud database is being initialized. Syncing data...");
+          const data = await SupabaseService.signUp(email, password, name);
+
+          // Check if Supabase returned a user that still needs email confirmation
+          if (data?.user && !data.session) {
+            alert("Account created! Please check your email inbox and confirm your address before signing in.\n\nTip: If you want to skip email confirmation, go to your Supabase dashboard → Authentication → Providers → Email → disable 'Confirm email'.");
+          } else {
+            alert("Account created and signed in! Your personal cloud database is being initialized…");
+            pageAuthForm.reset();
+            checkAuthState();
+          }
         } else {
           await SupabaseService.signIn(email, password);
-          alert("Welcome back! Loading cloud synced data...");
+          alert("Welcome back! Loading cloud synced data…");
+          pageAuthForm.reset();
+          checkAuthState();
         }
-        pageAuthForm.reset();
-        checkAuthState();
       } catch (error) {
-        alert("Auth Error: " + error.message);
+        if (error.message && error.message.toLowerCase().includes("email not confirmed")) {
+          alert("Your email address hasn't been confirmed yet.\n\n• Check your inbox for a confirmation link from Supabase.\n• Or go to your Supabase dashboard → Authentication → Providers → Email → disable 'Confirm email' to skip this step.");
+        } else {
+          alert("Auth Error: " + error.message);
+        }
       } finally {
         pageAuthSubmitBtn.disabled = false;
         pageAuthSubmitBtn.innerHTML = isPageSignUpMode
