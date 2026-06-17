@@ -1,74 +1,45 @@
 const ProfileModule = {
   init() {
-    // 1. Credentials Form
-    const urlInput = document.getElementById("profile-db-url");
-    const keyInput = document.getElementById("profile-db-key");
-    const saveCredsBtn = document.getElementById("btn-save-creds");
-    const clearCredsBtn = document.getElementById("btn-clear-creds");
-
-    // Populate credentials if already saved
-    urlInput.value = Config.SUPABASE_URL;
-    keyInput.value = Config.SUPABASE_KEY;
-
-    saveCredsBtn.addEventListener("click", () => {
-      const url = urlInput.value.trim();
-      const key = keyInput.value.trim();
-      if (url === "" || key === "") {
-        alert("Please enter both the Supabase URL and Anon Key!");
-        return;
-      }
-      Config.save(url, key);
-      alert("Credentials saved! Connecting to Supabase...");
-      this.updateStatus();
-    });
-
-    clearCredsBtn.addEventListener("click", () => {
-      if (confirm("Clear connection keys? This will log you out and revert data storage to localStorage.")) {
-        Config.clear();
-        urlInput.value = "";
-        keyInput.value = "";
-        this.updateStatus();
-      }
-    });
-
-    // 2. Settings Form (Profile & Targets)
+    // 1. Settings Form (Profile & Targets)
     const settingsForm = document.getElementById("profile-settings-form");
-    settingsForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      const fullName = document.getElementById("profile-input-name").value.trim();
-      const role = document.getElementById("profile-input-role").value.trim();
-      const calories = document.getElementById("profile-input-calories").value;
-      const protein = document.getElementById("profile-input-protein").value;
-      const carbs = document.getElementById("profile-input-carbs").value;
-      const fats = document.getElementById("profile-input-fats").value;
+    if (settingsForm) {
+      settingsForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const fullName = document.getElementById("profile-input-name").value.trim();
+        const role = document.getElementById("profile-input-role").value.trim();
+        const calories = document.getElementById("profile-input-calories").value;
+        const protein = document.getElementById("profile-input-protein").value;
+        const carbs = document.getElementById("profile-input-carbs").value;
+        const fats = document.getElementById("profile-input-fats").value;
 
-      try {
-        if (SupabaseService.isLoggedIn()) {
-          // Save to Supabase Profiles table
-          await SupabaseService.updateProfile({
-            fullName, role, calorieTarget: calories, proteinTarget: protein, carbsTarget: carbs, fatsTarget: fats
+        try {
+          if (SupabaseService.isLoggedIn()) {
+            // Save to Supabase Profiles table
+            await SupabaseService.updateProfile({
+              fullName, role, calorieTarget: calories, proteinTarget: protein, carbsTarget: carbs, fatsTarget: fats
+            });
+          }
+          
+          // Always sync changes locally to maintain local config
+          State.updateSettings({
+            calories, protein, carbs, fats
           });
+          
+          // Update user name indicators in sidebar/header
+          this.syncNameLabels(fullName, role);
+
+          alert("Profile settings and macro targets updated successfully!");
+          
+          // Reload dashboard/stats
+          this.render();
+        } catch (err) {
+          alert("Failed to save profile: " + err.message);
         }
-        
-        // Always sync changes locally to maintain local config
-        State.updateSettings({
-          calories, protein, carbs, fats
-        });
-        
-        // Update user name indicators in sidebar/header
-        this.syncNameLabels(fullName, role);
+      });
+    }
 
-        alert("Profile settings and macro targets updated successfully!");
-        
-        // Reload dashboard/stats
-        this.render();
-      } catch (err) {
-        alert("Failed to save profile: " + err.message);
-      }
-    });
-
-    // 3. Avatar Selections
+    // 2. Avatar Selections
     const avatarItems = document.querySelectorAll(".profile-avatar-option");
     avatarItems.forEach(item => {
       item.addEventListener("click", () => {
@@ -82,7 +53,8 @@ const ProfileModule = {
 
     // Populate initial avatar
     const savedInitials = localStorage.getItem("user_avatar_initials") || "AM";
-    document.getElementById("user-profile-btn").innerText = savedInitials;
+    const userProfileBtn = document.getElementById("user-profile-btn");
+    if (userProfileBtn) userProfileBtn.innerText = savedInitials;
     avatarItems.forEach(item => {
       if (item.innerText === savedInitials) {
         item.classList.add("selected");
@@ -91,24 +63,21 @@ const ProfileModule = {
       }
     });
 
-    // 4. Auth Buttons
+    // 3. Auth Buttons
     const logoutBtn = document.getElementById("profile-btn-logout");
-    logoutBtn.addEventListener("click", async () => {
-      if (confirm("Are you sure you want to sign out?")) {
-        try {
-          await SupabaseService.signOut();
-          alert("Signed out successfully!");
-          this.updateStatus();
-        } catch (e) {
-          alert("Error signing out: " + e.message);
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        if (confirm("Are you sure you want to sign out?")) {
+          try {
+            await SupabaseService.signOut();
+            alert("Signed out successfully!");
+            this.updateStatus();
+          } catch (e) {
+            alert("Error signing out: " + e.message);
+          }
         }
-      }
-    });
-
-    const loginModalTrigger = document.getElementById("profile-btn-show-login");
-    loginModalTrigger.addEventListener("click", () => {
-      openModal("modal-auth");
-    });
+      });
+    }
 
     // Setup listeners for updates
     window.addEventListener("supabaseAuthChanged", () => {
@@ -142,26 +111,16 @@ const ProfileModule = {
     const connText = document.getElementById("db-conn-text");
     const authStatusBox = document.getElementById("profile-auth-status-box");
 
+    if (!connLight || !connText || !authStatusBox) return;
+
     // Clear classes
     connLight.className = "indicator-dot";
 
-    if (!Config.isConfigured()) {
-      connLight.style.backgroundColor = "#ffc107"; // Yellow
-      connText.innerText = "Offline (Supabase not configured)";
-      
-      authStatusBox.innerHTML = `
-        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Connect to your database to enable account features.</div>
-        <button class="btn btn-secondary btn-sm" disabled><i class="fa-solid fa-lock"></i> Sign In Required</button>
-      `;
-      this.populateLocalSettings();
-      return;
-    }
-
-    if (!SupabaseService.client) {
+    if (!Config.isConfigured() || !SupabaseService.client) {
       connLight.style.backgroundColor = "#dc3545"; // Red
-      connText.innerText = "Connection Failed (Bad endpoint)";
+      connText.innerText = "Offline (Supabase connection error)";
       authStatusBox.innerHTML = `
-        <div style="font-size: 13px; color: #dc3545;">Failed to establish handshake. Review connection keys.</div>
+        <div style="font-size: 13px; color: #dc3545; margin-bottom: 8px;">Failed to connect to Supabase. Checking network or config.</div>
       `;
       this.populateLocalSettings();
       return;
@@ -182,9 +141,13 @@ const ProfileModule = {
         </div>
       `;
       
-      document.getElementById("profile-btn-logout-direct").addEventListener("click", () => {
-        document.getElementById("profile-btn-logout").click();
-      });
+      const directLogoutBtn = document.getElementById("profile-btn-logout-direct");
+      if (directLogoutBtn) {
+        directLogoutBtn.addEventListener("click", () => {
+          const mainLogoutBtn = document.getElementById("profile-btn-logout");
+          if (mainLogoutBtn) mainLogoutBtn.click();
+        });
+      }
 
       // Fetch profile variables to auto-fill
       const profile = await SupabaseService.getProfile();
@@ -201,18 +164,11 @@ const ProfileModule = {
       authStatusBox.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
           <div>
-            <div style="font-weight: 700; font-size: 14px;">Sign In to sync data</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Sync meal logs and planner database across devices</div>
+            <div style="font-weight: 700; font-size: 14px;">Not Authenticated</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Please log in to sync database.</div>
           </div>
-          <button class="btn btn-primary btn-sm" id="profile-btn-show-login-direct"><i class="fa-solid fa-sign-in-alt"></i> Sign In</button>
         </div>
       `;
-
-      document.getElementById("profile-btn-show-login-direct").addEventListener("click", () => {
-        openModal("modal-auth");
-      });
-
-      // Fill with local state targets
       this.populateLocalSettings();
     }
   },

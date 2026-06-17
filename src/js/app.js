@@ -146,58 +146,109 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Authentication Modal Handler (Login / Sign Up toggles)
-  let isSignUpMode = false;
-  const authForm = document.getElementById("auth-form");
-  const authModalTitle = document.getElementById("auth-modal-title");
-  const authNameGroup = document.getElementById("auth-group-name");
-  const authSubmitBtn = document.getElementById("btn-auth-submit");
-  const authToggleLink = document.getElementById("btn-toggle-auth-mode");
+  // Dedicated Login / Sign Up Page Handler
+  let isPageSignUpMode = false;
+  const pageAuthForm = document.getElementById("page-auth-form");
+  const pageAuthTitle = document.getElementById("page-auth-title");
+  const pageAuthSubtitle = document.getElementById("page-auth-subtitle");
+  const pageAuthNameGroup = document.getElementById("page-auth-group-name");
+  const pageAuthSubmitBtn = document.getElementById("btn-page-auth-submit");
+  const pageAuthToggleLink = document.getElementById("btn-page-toggle-auth");
 
-  authToggleLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    isSignUpMode = !isSignUpMode;
-    if (isSignUpMode) {
-      authModalTitle.innerText = "Create Cloud Account";
-      authNameGroup.style.display = "flex";
-      authSubmitBtn.innerText = "Register";
-      authToggleLink.innerText = "Already have an account? Sign In";
-      document.getElementById("auth-input-name").required = true;
-    } else {
-      authModalTitle.innerText = "Sign In to Cloud Sync";
-      authNameGroup.style.display = "none";
-      authSubmitBtn.innerText = "Sign In";
-      authToggleLink.innerText = "Don't have an account? Sign Up";
-      document.getElementById("auth-input-name").required = false;
-    }
-  });
-
-  authForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = document.getElementById("auth-input-email").value.trim();
-    const password = document.getElementById("auth-input-password").value;
-    const name = document.getElementById("auth-input-name").value.trim();
-
-    authSubmitBtn.disabled = true;
-    authSubmitBtn.innerText = isSignUpMode ? "Registering..." : "Signing in...";
-
-    try {
-      if (isSignUpMode) {
-        await SupabaseService.signUp(email, password, name);
-        alert("Registration successful! Check email if validation is required or configure login.");
+  if (pageAuthToggleLink) {
+    pageAuthToggleLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      isPageSignUpMode = !isPageSignUpMode;
+      if (isPageSignUpMode) {
+        pageAuthTitle.innerText = "Create Cloud Account";
+        pageAuthSubtitle.innerText = "Join Sous-Chef Pro today and build your health plan.";
+        pageAuthNameGroup.style.display = "flex";
+        pageAuthSubmitBtn.innerText = "Register & Initialize Database";
+        pageAuthToggleLink.innerText = "Already have an account? Sign In";
+        document.getElementById("page-auth-input-name").required = true;
       } else {
-        await SupabaseService.signIn(email, password);
-        alert("Welcome back! Loading cloud synced data...");
+        pageAuthTitle.innerText = "Sign In to Cloud Sync";
+        pageAuthSubtitle.innerText = "Sync your custom recipes, planner slots, and meal logs.";
+        pageAuthNameGroup.style.display = "none";
+        pageAuthSubmitBtn.innerText = "Sign In";
+        pageAuthToggleLink.innerText = "Don't have an account? Sign Up";
+        document.getElementById("page-auth-input-name").required = false;
       }
-      closeModal("modal-auth");
-      authForm.reset();
-    } catch (error) {
-      alert("Auth Error: " + error.message);
-    } finally {
-      authSubmitBtn.disabled = false;
-      authSubmitBtn.innerText = isSignUpMode ? "Register" : "Sign In";
+    });
+  }
+
+  if (pageAuthForm) {
+    pageAuthForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("page-auth-input-email").value.trim();
+      const password = document.getElementById("page-auth-input-password").value;
+      const name = document.getElementById("page-auth-input-name").value.trim();
+
+      pageAuthSubmitBtn.disabled = true;
+      pageAuthSubmitBtn.innerText = isPageSignUpMode ? "Registering & Initializing..." : "Signing in...";
+
+      try {
+        if (isPageSignUpMode) {
+          await SupabaseService.signUp(email, password, name);
+          alert("Registration successful! Your personal cloud database is being initialized. Syncing data...");
+        } else {
+          await SupabaseService.signIn(email, password);
+          alert("Welcome back! Loading cloud synced data...");
+        }
+        pageAuthForm.reset();
+        checkAuthState();
+      } catch (error) {
+        alert("Auth Error: " + error.message);
+      } finally {
+        pageAuthSubmitBtn.disabled = false;
+        pageAuthSubmitBtn.innerText = isPageSignUpMode ? "Register & Initialize Database" : "Sign In";
+      }
+    });
+  }
+
+  // Auth State UI toggling
+  function checkAuthState() {
+    const authPage = document.getElementById("auth-page");
+    const appContainer = document.querySelector(".app-container");
+    const mobileHeader = document.getElementById("mobile-header");
+
+    if (window.SupabaseService && SupabaseService.isLoggedIn()) {
+      if (authPage) authPage.style.display = "none";
+      if (appContainer) appContainer.style.display = "flex";
+      
+      // Sync names to UI upon login
+      if (window.ProfileModule && typeof window.ProfileModule.updateStatus === "function") {
+        window.ProfileModule.updateStatus();
+      }
+      
+      // Determine if mobile header should display
+      if (mobileHeader) {
+        if (window.innerWidth <= 768) {
+          mobileHeader.style.display = "flex";
+        } else {
+          mobileHeader.style.display = "none";
+        }
+      }
+    } else {
+      if (authPage) authPage.style.display = "flex";
+      if (appContainer) appContainer.style.display = "none";
+      if (mobileHeader) mobileHeader.style.display = "none";
+    }
+  }
+
+  // Hook resize event and auth change events
+  window.addEventListener("resize", checkAuthState);
+  window.addEventListener("supabaseAuthChanged", () => {
+    checkAuthState();
+    // Re-render dashboard or active screen
+    const activeItem = document.querySelector(".nav-menu .nav-item.active");
+    if (activeItem) {
+      triggerSectionReload(activeItem.getAttribute("data-view"));
     }
   });
+
+  // Call immediately to assert correct initial screen
+  setTimeout(checkAuthState, 100);
 
   // Navigation Shortcut Links
   document.getElementById("btn-dashboard-quick-log").addEventListener("click", () => {

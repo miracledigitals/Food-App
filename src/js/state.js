@@ -295,19 +295,15 @@ const State = {
     try {
       console.log("Syncing database with Supabase cloud tables...");
 
-      // 1. Recipes Sync
-      let cloudRecipes = await SupabaseService.fetchRecipes();
-      if (cloudRecipes.length === 0) {
-        // New user has no recipes: prepopulate cloud with defaults
-        for (let recipe of DEFAULT_RECIPES) {
-          await SupabaseService.saveRecipe(recipe);
-        }
-        cloudRecipes = await SupabaseService.fetchRecipes();
+      // 1. Profile / Targets Sync & Database Initialization Check
+      let profile = await SupabaseService.getProfile();
+      if (!profile) {
+        console.log("No cloud profile found. Initializing database for new user...");
+        const fullName = SupabaseService.currentUser.user_metadata?.full_name || "Alex Miller";
+        await SupabaseService.initializeUserDatabase(SupabaseService.currentUser.id, fullName);
+        profile = await SupabaseService.getProfile();
       }
-      this.data.recipes = cloudRecipes;
 
-      // 2. Profile / Targets Sync
-      const profile = await SupabaseService.getProfile();
       if (profile) {
         this.data.settings = {
           calories: profile.calorie_target,
@@ -316,6 +312,9 @@ const State = {
           fats: profile.fats_target
         };
       }
+
+      // 2. Recipes Sync
+      this.data.recipes = await SupabaseService.fetchRecipes();
 
       // 3. Weekly Planner Sync
       const cloudPlanner = await SupabaseService.fetchPlanner();
@@ -530,4 +529,8 @@ const State = {
 
 // Initialize State immediately
 State.init();
+State.DEFAULT_RECIPES = DEFAULT_RECIPES;
+State.DEFAULT_PLANNER = DEFAULT_PLANNER;
+State.DEFAULT_LOGS = DEFAULT_LOGS;
+State.DEFAULT_REMINDERS = DEFAULT_REMINDERS;
 window.State = State; // Expose to other scripts
