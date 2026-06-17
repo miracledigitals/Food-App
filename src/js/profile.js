@@ -88,6 +88,53 @@ const ProfileModule = {
       });
     }
 
+    // 4. Supabase Connection Credentials Form
+    const supabaseForm = document.getElementById("profile-supabase-config-form");
+    if (supabaseForm) {
+      supabaseForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const url = document.getElementById("profile-input-supabase-url").value.trim();
+        const key = document.getElementById("profile-input-supabase-key").value.trim();
+        
+        if (!url || !key) {
+          alert("Please fill in both URL and Key.");
+          return;
+        }
+
+        try {
+          Config.save(url, key);
+          alert("Supabase connection credentials saved successfully! Re-initializing client...");
+          this.updateStatus();
+        } catch (err) {
+          alert("Failed to save credentials: " + err.message);
+        }
+      });
+    }
+
+    // 5. Reset Config Button
+    const resetConfigBtn = document.getElementById("btn-reset-supabase-config");
+    if (resetConfigBtn) {
+      resetConfigBtn.addEventListener("click", () => {
+        if (confirm("Are you sure you want to reset to default Supabase connection parameters?")) {
+          try {
+            Config.clear();
+            alert("Reset to default Supabase credentials successfully!");
+            this.updateStatus();
+          } catch (err) {
+            alert("Failed to reset: " + err.message);
+          }
+        }
+      });
+    }
+
+    // 6. Diagnostics Button
+    const runDiagBtn = document.getElementById("btn-run-diagnostics");
+    if (runDiagBtn) {
+      runDiagBtn.addEventListener("click", async () => {
+        await this.runDiagnostics();
+      });
+    }
+
     // Setup listeners for updates
     window.addEventListener("supabaseAuthChanged", () => {
       this.updateStatus();
@@ -150,6 +197,12 @@ const ProfileModule = {
 
     // Clear classes
     connLight.className = "indicator-dot";
+
+    // Populate Supabase credentials inputs
+    const urlInput = document.getElementById("profile-input-supabase-url");
+    const keyInput = document.getElementById("profile-input-supabase-key");
+    if (urlInput) urlInput.value = Config.SUPABASE_URL || "";
+    if (keyInput) keyInput.value = Config.SUPABASE_KEY || "";
 
     if (!Config.isConfigured() || !SupabaseService.client) {
       connLight.style.backgroundColor = "#dc3545"; // Red
@@ -217,6 +270,132 @@ const ProfileModule = {
     document.getElementById("profile-input-carbs").value = settings.carbs;
     document.getElementById("profile-input-fats").value = settings.fats;
     this.syncNameLabels("", "");
+  },
+
+  async runDiagnostics() {
+    const resultsBox = document.getElementById("diagnostics-results-box");
+    if (!resultsBox) return;
+
+    resultsBox.innerHTML = `
+      <div style="font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-spinner fa-spin"></i> Running diagnostics checks...
+      </div>
+    `;
+
+    if (!Config.isConfigured() || !SupabaseService.client) {
+      resultsBox.innerHTML = `
+        <div style="padding: 12px; background-color: rgba(220,53,69,0.1); border: 1px solid rgba(220,53,69,0.2); border-radius: var(--radius-md); font-size: 13px;">
+          <div style="font-weight: 700; color: #dc3545; margin-bottom: 4px;"><i class="fa-solid fa-circle-xmark"></i> Connection Error</div>
+          <div style="color: var(--text-muted);">Supabase client is not configured or initialized. Please check your URL and Key inputs.</div>
+        </div>
+      `;
+      return;
+    }
+
+    const tablesToCheck = [
+      { name: "profiles", desc: "User Profiles table" },
+      { name: "recipes", desc: "Recipe Library table" },
+      { name: "weekly_planner", desc: "Weekly Meal Planner table" },
+      { name: "logged_meals", desc: "Meal Logger logs table" },
+      { name: "reminders", desc: "Reminders & Notes table" }
+    ];
+
+    let html = '<div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">';
+    let missingTables = [];
+    let schemaCacheIssue = false;
+    let schemaCacheErrorMsg = "";
+
+    for (const table of tablesToCheck) {
+      try {
+        const { error } = await SupabaseService.client
+          .from(table.name)
+          .select("*")
+          .limit(0);
+
+        if (error) {
+          console.warn(`Diagnostics query for ${table.name} returned error:`, error);
+          if (error.message && (error.message.includes("schema cache") || error.message.includes("could not find"))) {
+            schemaCacheIssue = true;
+            schemaCacheErrorMsg = error.message;
+            missingTables.push(table.name);
+            html += `
+              <div style="display: flex; justify-content: space-between; align-items: center; color: #dc3545; font-weight: 600;">
+                <span><i class="fa-solid fa-triangle-exclamation"></i> ${table.name} (${table.desc})</span>
+                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Cache Stale</span>
+              </div>
+            `;
+          } else if (error.message && (error.message.includes("does not exist") || error.message.includes("not found"))) {
+            missingTables.push(table.name);
+            html += `
+              <div style="display: flex; justify-content: space-between; align-items: center; color: #dc3545; font-weight: 600;">
+                <span><i class="fa-solid fa-circle-xmark"></i> ${table.name} (${table.desc})</span>
+                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Not Found</span>
+              </div>
+            `;
+          } else {
+            html += `
+              <div style="display: flex; justify-content: space-between; align-items: center; color: #2d6a4f;">
+                <span><i class="fa-solid fa-circle-check"></i> ${table.name} (${table.desc})</span>
+                <span style="font-size: 10px; color: var(--text-muted);">Exists (RLS Active)</span>
+              </div>
+            `;
+          }
+        } else {
+          html += `
+            <div style="display: flex; justify-content: space-between; align-items: center; color: #2d6a4f;">
+              <span><i class="fa-solid fa-circle-check"></i> ${table.name} (${table.desc})</span>
+              <span style="font-size: 10px; color: var(--text-muted);">Active & Healthy</span>
+            </div>
+          `;
+        }
+      } catch (err) {
+        missingTables.push(table.name);
+        html += `
+          <div style="display: flex; justify-content: space-between; align-items: center; color: #dc3545; font-weight: 600;">
+            <span><i class="fa-solid fa-circle-xmark"></i> ${table.name} (${table.desc})</span>
+            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Error: ${err.message || err}</span>
+          </div>
+        `;
+      }
+    }
+
+    html += "</div>";
+
+    if (missingTables.length > 0) {
+      let adviceHtml = "";
+      if (schemaCacheIssue) {
+        adviceHtml = `
+          <div style="margin-top: 16px; padding: 12px; background-color: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.2); border-radius: var(--radius-md); font-size: 12px; line-height: 1.4;">
+            <div style="font-weight: 700; color: #b58900; margin-bottom: 6px;"><i class="fa-solid fa-triangle-exclamation"></i> Stale PostgREST Schema Cache Detected</div>
+            <div style="margin-bottom: 8px;">The Supabase API cache is out of date. To notify Supabase to reload the tables, execute this SQL command in your Supabase SQL Editor:</div>
+            <code style="display: block; background-color: var(--bg-main); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-weight: 700; color: var(--text-main); margin-bottom: 8px; user-select: all; cursor: pointer;">NOTIFY pgrst, 'reload schema';</code>
+            <div>After executing the reload command, click <strong>"Run Check"</strong> again.</div>
+          </div>
+        `;
+      } else {
+        adviceHtml = `
+          <div style="margin-top: 16px; padding: 12px; background-color: rgba(220,53,69,0.08); border: 1px solid rgba(220,53,69,0.15); border-radius: var(--radius-md); font-size: 12px; line-height: 1.4;">
+            <div style="font-weight: 700; color: #dc3545; margin-bottom: 6px;"><i class="fa-solid fa-info-circle"></i> Missing Tables Checklist</div>
+            <div style="margin-bottom: 8px;">Some required tables are missing from the current schema. To fix this:</div>
+            <ol style="margin-left: 16px; display: flex; flex-direction: column; gap: 4px;">
+              <li>Open your Supabase project dashboard.</li>
+              <li>Navigate to the **SQL Editor** tab.</li>
+              <li>Create a new query and paste the contents of <code>supabase_schema.sql</code> (located in the root of this workspace).</li>
+              <li>Click **Run** to execute the table creation queries.</li>
+            </ol>
+          </div>
+        `;
+      }
+      html += adviceHtml;
+    } else {
+      html += `
+        <div style="margin-top: 12px; padding: 10px; background-color: rgba(45,106,79,0.1); border: 1px solid rgba(45,106,79,0.2); border-radius: var(--radius-md); font-size: 12px; color: #2d6a4f; font-weight: 600; text-align: center;">
+          <i class="fa-solid fa-circle-check"></i> Connection Diagnostics Passed! All tables are healthy.
+        </div>
+      `;
+    }
+
+    resultsBox.innerHTML = html;
   },
 
   render() {

@@ -439,6 +439,14 @@ const SupabaseService = {
   }
 };
 
+// Listen for config changes and re-initialize
+window.addEventListener("supabaseConfigChanged", () => {
+  console.log("Supabase configuration changed. Re-initializing client...");
+  SupabaseService.init();
+  // Trigger auth state check
+  window.dispatchEvent(new CustomEvent("supabaseAuthChanged"));
+});
+
 // Initialize immediately
 SupabaseService.init();
 window.SupabaseService = SupabaseService;
