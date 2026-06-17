@@ -204,9 +204,9 @@ const RecipesModule = {
 
     // Import recipe form submit
     const importForm = document.getElementById("recipe-import-form");
-    importForm.addEventListener("submit", (e) => {
+    importForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      this.submitImportedRecipe();
+      await this.submitImportedRecipe();
     });
 
     // Detail Modal schedule button
