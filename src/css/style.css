@@ -1459,3 +1459,22 @@ input:checked + .slider:before {
 input[type="checkbox"] {
   accent-color: var(--primary-color);
 }
+
+/* User Profile & Auth Modals Custom Styles */
+.profile-avatar-option.selected {
+  background-color: var(--primary-color) !important;
+  color: var(--text-inverse) !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 4px 10px rgba(45, 106, 79, 0.3);
+}
+
+.indicator-dot {
+  display: inline-block;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+#profile-btn-show-login-direct, #profile-btn-logout-direct {
+  margin-top: 4px;
+}
+

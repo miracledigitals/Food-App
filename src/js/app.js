@@ -47,6 +47,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Sidebar profile footer click triggers profile page transition
+  const sidebarFooterUser = document.getElementById("sidebar-user-footer");
+  if (sidebarFooterUser) {
+    sidebarFooterUser.addEventListener("click", () => {
+      switchView("profile");
+    });
+  }
+
   // Dark/Light Theme Switcher
   const themeToggle = document.getElementById("dark-theme-toggle");
   const savedTheme = localStorage.getItem("sous_chef_theme") || "light";
@@ -69,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Edit Targets Modal
+  // Edit Targets Modal (Dashboard Quick Action)
   const editTargetsBtn = document.getElementById("btn-edit-targets");
   const targetsForm = document.getElementById("targets-form");
   const calorieInput = document.getElementById("target-input-calories");
@@ -87,15 +95,83 @@ document.addEventListener("DOMContentLoaded", () => {
     openModal("modal-edit-targets");
   });
 
-  targetsForm.addEventListener("submit", (e) => {
+  targetsForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    State.updateSettings({
-      calories: calorieInput.value,
-      protein: proteinInput.value,
-      carbs: carbsInput.value,
-      fats: fatsInput.value
-    });
-    closeModal("modal-edit-targets");
+    const calories = calorieInput.value;
+    const protein = proteinInput.value;
+    const carbs = carbsInput.value;
+    const fats = fatsInput.value;
+
+    try {
+      if (window.SupabaseService && SupabaseService.isLoggedIn()) {
+        const profile = await SupabaseService.getProfile();
+        await SupabaseService.updateProfile({
+          fullName: profile ? profile.full_name : "Alex Miller",
+          role: profile ? profile.role : "Nutrition Pro",
+          calorieTarget: calories,
+          proteinTarget: protein,
+          carbsTarget: carbs,
+          fatsTarget: fats
+        });
+      }
+      State.updateSettings({ calories, protein, carbs, fats });
+      closeModal("modal-edit-targets");
+    } catch (err) {
+      alert("Failed saving targets to cloud: " + err.message);
+    }
+  });
+
+  // Authentication Modal Handler (Login / Sign Up toggles)
+  let isSignUpMode = false;
+  const authForm = document.getElementById("auth-form");
+  const authModalTitle = document.getElementById("auth-modal-title");
+  const authNameGroup = document.getElementById("auth-group-name");
+  const authSubmitBtn = document.getElementById("btn-auth-submit");
+  const authToggleLink = document.getElementById("btn-toggle-auth-mode");
+
+  authToggleLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    isSignUpMode = !isSignUpMode;
+    if (isSignUpMode) {
+      authModalTitle.innerText = "Create Cloud Account";
+      authNameGroup.style.display = "flex";
+      authSubmitBtn.innerText = "Register";
+      authToggleLink.innerText = "Already have an account? Sign In";
+      document.getElementById("auth-input-name").required = true;
+    } else {
+      authModalTitle.innerText = "Sign In to Cloud Sync";
+      authNameGroup.style.display = "none";
+      authSubmitBtn.innerText = "Sign In";
+      authToggleLink.innerText = "Don't have an account? Sign Up";
+      document.getElementById("auth-input-name").required = false;
+    }
+  });
+
+  authForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("auth-input-email").value.trim();
+    const password = document.getElementById("auth-input-password").value;
+    const name = document.getElementById("auth-input-name").value.trim();
+
+    authSubmitBtn.disabled = true;
+    authSubmitBtn.innerText = isSignUpMode ? "Registering..." : "Signing in...";
+
+    try {
+      if (isSignUpMode) {
+        await SupabaseService.signUp(email, password, name);
+        alert("Registration successful! Check email if validation is required or configure login.");
+      } else {
+        await SupabaseService.signIn(email, password);
+        alert("Welcome back! Loading cloud synced data...");
+      }
+      closeModal("modal-auth");
+      authForm.reset();
+    } catch (error) {
+      alert("Auth Error: " + error.message);
+    } finally {
+      authSubmitBtn.disabled = false;
+      authSubmitBtn.innerText = isSignUpMode ? "Register" : "Sign In";
+    }
   });
 
   // Navigation Shortcut Links
@@ -135,6 +211,12 @@ document.addEventListener("DOMContentLoaded", () => {
           window.GroceryModule.render();
         }
         break;
+      case "profile":
+        if (window.ProfileModule && typeof window.ProfileModule.render === "function") {
+          window.ProfileModule.render();
+          window.ProfileModule.updateStatus();
+        }
+        break;
     }
   }
 
@@ -142,7 +224,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const logTimeField = document.getElementById("log-meal-time");
   if (logTimeField) {
     const now = new Date();
-    // Offset local date for datetime-local input string format
     const offsetNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
       .toISOString()
       .slice(0, 16);

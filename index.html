@@ -6,6 +6,8 @@
   <title>Sous-Chef Pro - Desktop Meal Planner & Food Scheduler</title>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Supabase JS Client library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Stylesheet -->
   <link rel="stylesheet" href="src/css/style.css">
 </head>
@@ -39,6 +41,9 @@
             <li class="nav-item" data-view="grocery">
               <button><i class="fa-solid fa-basket-shopping"></i>Grocery List</button>
             </li>
+            <li class="nav-item" data-view="profile">
+              <button><i class="fa-solid fa-user-gear"></i>User Profile</button>
+            </li>
           </ul>
         </nav>
       </div>
@@ -52,7 +57,7 @@
           </label>
         </div>
         
-        <div class="user-profile">
+        <div class="user-profile" id="sidebar-user-footer" style="cursor: pointer;">
           <div class="user-avatar" id="user-profile-btn">AM</div>
           <div class="user-info">
             <span class="user-name">Alex Miller</span>
@@ -187,7 +192,6 @@
             <div class="card">
               <div class="card-title">Nutritional Balance</div>
               <div class="chart-container">
-                <!-- Inline SVG Pie/Donut Chart for high fidelity design -->
                 <svg width="180" height="180" viewBox="0 0 42 42" class="donut-chart" id="nutrition-donut-chart">
                   <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--border-color)" stroke-width="4.5"></circle>
                   
@@ -229,8 +233,7 @@
             <div class="card suggestion-card">
               <div class="card-title">Chef's Suggestion</div>
               <div class="suggestion-content" id="widget-chef-suggestion">
-                <!-- Dynamic Content Loaded from JS -->
-                <div class="suggestion-image" id="suggest-img" style="background-image: url('./assets/grilled_salmon.jpg');">
+                <div class="suggestion-image" id="suggest-img" style="background-image: url('./assets/grilled_salmon.png');">
                   <span class="suggestion-tag">High Protein</span>
                 </div>
                 <div class="suggestion-name" id="suggest-name">Lemon Herb Grilled Salmon</div>
@@ -272,7 +275,6 @@
         </div>
         
         <div class="calendar-layout">
-          <!-- Calendar Card -->
           <div class="card">
             <div class="calendar-header-actions">
               <div class="calendar-month-title" id="calendar-month-year">June 2026</div>
@@ -287,7 +289,6 @@
             </div>
           </div>
           
-          <!-- Sidebar Targets & Reminders -->
           <div style="display: flex; flex-direction: column; gap: 24px;">
             <div class="card">
               <div class="card-title">Target Tracking</div>
@@ -327,7 +328,6 @@
               </div>
             </div>
             
-            <!-- Reminders & Meal Prep -->
             <div class="card">
               <div class="card-title">
                 <span>Meal Prep & Grocery</span>
@@ -353,12 +353,10 @@
         </div>
         
         <div class="logger-container">
-          <!-- Multi-modal input panel -->
           <div style="display: flex; flex-direction: column; gap: 24px;">
             <div class="card">
               <div class="card-title">AI Food Analysis</div>
               
-              <!-- Photo Uploader Form -->
               <div class="photo-uploader" id="photo-dropzone">
                 <i class="fa-solid fa-cloud-arrow-up uploader-icon"></i>
                 <div class="uploader-title">Drag and drop food photo here</div>
@@ -380,7 +378,6 @@
               </button>
             </div>
             
-            <!-- AI Loading Scanner Overlay -->
             <div class="scanner-overlay" id="logger-scanner">
               <div class="scanner-beam"></div>
               <div class="scanner-circle"></div>
@@ -394,7 +391,6 @@
             </div>
           </div>
           
-          <!-- Detailed Manual Form & Live Result Preview -->
           <div class="card">
             <div class="card-title">Meal Details & Macros</div>
             
@@ -421,7 +417,6 @@
                 </div>
               </div>
               
-              <!-- Sliders & Previews -->
               <div class="macro-scroller">
                 <div class="macro-slider-item">
                   <div class="macro-slider-label">
@@ -456,7 +451,6 @@
                 </div>
               </div>
               
-              <!-- Tag selection -->
               <div class="form-group">
                 <label class="form-label">Dietary Tags</label>
                 <div class="tag-select-container" id="logger-tags-container">
@@ -469,7 +463,6 @@
                 </div>
               </div>
               
-              <!-- Actions -->
               <div style="display: flex; gap: 12px; margin-top: 8px;">
                 <button type="submit" class="btn btn-primary" style="flex-grow: 1;"><i class="fa-solid fa-floppy-disk"></i>Save Logged Meal</button>
                 <button type="button" class="btn btn-secondary" id="btn-schedule-logged"><i class="fa-solid fa-calendar-plus"></i>Schedule to Plan</button>
@@ -509,7 +502,6 @@
           </div>
         </div>
         
-        <!-- Recipe Grid -->
         <div class="recipes-grid" id="recipes-grid-container">
           <!-- Rendered dynamically -->
         </div>
@@ -527,7 +519,6 @@
         </div>
         
         <div class="grocery-layout">
-          <!-- Grocery list -->
           <div class="card" id="grocery-card-box" style="min-height: 400px;">
             <div id="grocery-list-wrapper">
               <!-- Loaded dynamically -->
@@ -540,7 +531,6 @@
             </div>
           </div>
           
-          <!-- Actions Sidebar -->
           <div class="card">
             <div class="card-title">Shopping Assistant</div>
             <div style="display: flex; flex-direction: column; gap: 16px;">
@@ -557,7 +547,132 @@
           </div>
         </div>
       </section>
-      
+
+      <!-- ==========================================
+           6. USER PROFILE & SUPABASE CONFIG
+           ========================================== -->
+      <section id="view-profile" class="view-section">
+        <div class="content-header">
+          <div class="header-title">
+            <h1>User Profile Settings</h1>
+            <p class="header-subtitle">Manage targets, choose avatars, and configure cloud database credentials</p>
+          </div>
+        </div>
+
+        <!-- Connection / Stats Banner -->
+        <div class="dashboard-summary-bar">
+          <div class="card summary-card" style="--accent-color: var(--primary-color);">
+            <span class="summary-title">Database Integration</span>
+            <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; margin-top: 4px;">
+              <span id="db-conn-light" class="indicator-dot" style="width: 10px; height: 10px; background-color: #ffc107;"></span>
+              <span id="db-conn-text">Checking credentials...</span>
+            </div>
+          </div>
+          <div class="card summary-card" style="--accent-color: var(--color-protein)">
+            <span class="summary-title">Logged Meals</span>
+            <div class="summary-value" id="stat-total-entries">0</div>
+          </div>
+          <div class="card summary-card" style="--accent-color: var(--color-carbs)">
+            <span class="summary-title">Consistency Streak</span>
+            <div class="summary-value" id="stat-active-streak">0 Days</div>
+          </div>
+          <div class="card summary-card" style="--accent-color: var(--color-fats)">
+            <span class="summary-title">Target Consistency</span>
+            <div class="summary-value" id="stat-consistency-score">0%</div>
+          </div>
+        </div>
+
+        <div class="grocery-layout">
+          <!-- Left Column: Database Integration Config -->
+          <div class="card">
+            <div class="card-title">Supabase Database Config</div>
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+                Sous-Chef Pro can sync all parameters directly to a hosted Supabase database. Paste your project public endpoints below:
+              </p>
+              
+              <div class="form-group">
+                <label class="form-label" for="profile-db-url">Supabase Project URL</label>
+                <input type="text" class="form-input" id="profile-db-url" placeholder="https://yourproject.supabase.co">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="profile-db-key">Supabase Anon Public API Key</label>
+                <input type="password" class="form-input" id="profile-db-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+              </div>
+
+              <div style="display: flex; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;">
+                <button type="button" class="btn btn-primary" id="btn-save-creds" style="flex-grow: 1;"><i class="fa-solid fa-cloud-arrow-up"></i>Connect Database</button>
+                <button type="button" class="btn btn-secondary" id="btn-clear-creds"><i class="fa-solid fa-trash-can"></i>Clear</button>
+              </div>
+
+              <!-- Auth Card Box -->
+              <div>
+                <div style="font-weight: 700; font-size: 14px; margin-bottom: 12px;">Authentication Status</div>
+                <div id="profile-auth-status-box" style="padding: 16px; background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 8px;">
+                  <!-- Loaded via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Settings & Target Presets Form -->
+          <div class="card">
+            <div class="card-title">Profile Profile Details</div>
+            
+            <form id="profile-settings-form" style="display: flex; flex-direction: column; gap: 16px;">
+              <div class="form-group">
+                <label class="form-label" for="profile-input-name">Athlete Full Name</label>
+                <input type="text" class="form-input" id="profile-input-name" required value="Alex Miller">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="profile-input-role">Nutrition Role/Title</label>
+                <input type="text" class="form-input" id="profile-input-role" required value="Nutrition Pro">
+              </div>
+
+              <!-- Avatar Selection Row -->
+              <div class="form-group">
+                <label class="form-label">Avatar Initials</label>
+                <div style="display: flex; gap: 10px; margin-top: 4px;">
+                  <span class="tag-option profile-avatar-option selected" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-weight: 700; border-radius: 50%; padding: 0;">AM</span>
+                  <span class="tag-option profile-avatar-option" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-weight: 700; border-radius: 50%; padding: 0;">JD</span>
+                  <span class="tag-option profile-avatar-option" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-weight: 700; border-radius: 50%; padding: 0;">CC</span>
+                  <span class="tag-option profile-avatar-option" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-weight: 700; border-radius: 50%; padding: 0;">SC</span>
+                </div>
+              </div>
+
+              <div style="border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <div style="font-weight: 700; font-size: 14px; margin-bottom: 12px;">Daily Macro Goals</div>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label" for="profile-input-calories">Calories (kcal)</label>
+                    <input type="number" class="form-input" id="profile-input-calories" min="500" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="profile-input-protein">Protein (g)</label>
+                    <input type="number" class="form-input" id="profile-input-protein" min="10" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="profile-input-carbs">Carbs (g)</label>
+                    <input type="number" class="form-input" id="profile-input-carbs" min="10" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="profile-input-fats">Fats (g)</label>
+                    <input type="number" class="form-input" id="profile-input-fats" min="5" required>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px; margin-top: 12px;">
+                <button type="submit" class="btn btn-primary" style="flex-grow: 1;"><i class="fa-solid fa-floppy-disk"></i>Save Profile Settings</button>
+                <button type="button" class="btn btn-secondary" id="profile-btn-logout" style="display: none;"><i class="fa-solid fa-sign-out-alt"></i>Sign Out</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -572,7 +687,6 @@
       </div>
       <div class="modal-body">
         <div style="display: flex; flex-direction: column; gap: 16px;">
-          <!-- Option 1: Choose from Library -->
           <div>
             <div style="font-weight: 700; margin-bottom: 8px;">Choose from Recipe Library</div>
             <select class="form-input" id="planner-select-recipe" style="width: 100%; margin-bottom: 8px;">
@@ -586,7 +700,6 @@
             <div style="position: absolute; top: 50%; left: 0; right: 0; border-top: 1px solid var(--border-color); z-index: 1;"></div>
           </div>
           
-          <!-- Option 2: Add Custom Meal details -->
           <form id="planner-custom-form" style="display: flex; flex-direction: column; gap: 12px;">
             <div class="form-group">
               <label class="form-label" for="plan-custom-name">Meal Name</label>
@@ -682,13 +795,11 @@
       <form id="recipe-import-form">
         <div class="modal-body">
           <div style="display: flex; flex-direction: column; gap: 14px;">
-            <!-- Tab selector for Import Method -->
             <div style="display: flex; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
               <button type="button" class="btn btn-sm btn-primary" id="btn-import-tab-scratch" style="border-radius: 4px 0 0 4px; box-shadow: none;">Create From Scratch</button>
               <button type="button" class="btn btn-sm btn-secondary" id="btn-import-tab-url" style="border-radius: 0 4px 4px 0; box-shadow: none; border-left: none;">Import from URL</button>
             </div>
             
-            <!-- URL Import form segment -->
             <div id="import-segment-url" style="display: none; flex-direction: column; gap: 10px;">
               <div class="form-group">
                 <label class="form-label" for="import-recipe-url">Recipe Website URL</label>
@@ -698,7 +809,6 @@
               <button type="button" class="btn btn-primary" id="btn-trigger-url-scrape" style="width: 100%;">Analyze & Autofill Form</button>
             </div>
             
-            <!-- Shared Manual Input segment -->
             <div id="import-segment-manual" style="display: flex; flex-direction: column; gap: 10px;">
               <div class="form-group">
                 <label class="form-label" for="import-name">Recipe Title</label>
@@ -801,8 +911,52 @@
     </div>
   </div>
 
+  <!-- ==========================================
+       MODAL 5: USER AUTHENTICATION
+       ========================================== -->
+  <div class="modal-backdrop" id="modal-auth">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="auth-modal-title">Sign In to Cloud Sync</h3>
+        <button class="modal-close" onclick="closeModal('modal-auth')">&times;</button>
+      </div>
+      <form id="auth-form">
+        <div class="modal-body">
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <!-- Sign Up name field (hidden during sign in) -->
+            <div class="form-group" id="auth-group-name" style="display: none;">
+              <label class="form-label" for="auth-input-name">Full Name</label>
+              <input type="text" class="form-input" id="auth-input-name" placeholder="Alex Miller">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="auth-input-email">Email Address</label>
+              <input type="email" class="form-input" id="auth-input-email" required placeholder="alex@example.com">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="auth-input-password">Password</label>
+              <input type="password" class="form-input" id="auth-input-password" required minlength="6" placeholder="••••••••">
+            </div>
+
+            <div style="font-size: 12px; text-align: right;">
+              <a href="#" id="btn-toggle-auth-mode" style="color: var(--primary-color); font-weight: 700; text-decoration: none;">Don't have an account? Sign Up</a>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-auth')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-auth-submit">Sign In</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Javascript Modules -->
+  <script src="src/js/config.js"></script>
   <script src="src/js/state.js"></script>
+  <script src="src/js/supabase.js"></script>
+  <script src="src/js/profile.js"></script>
   <script src="src/js/dashboard.js"></script>
   <script src="src/js/calendar.js"></script>
   <script src="src/js/logger.js"></script>
