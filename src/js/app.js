@@ -131,8 +131,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.SupabaseService && SupabaseService.isLoggedIn()) {
         const profile = await SupabaseService.getProfile();
         await SupabaseService.updateProfile({
-          fullName: profile ? profile.full_name : "Alex Miller",
-          role: profile ? profile.role : "Nutrition Pro",
+          fullName: profile?.full_name || "",
+          role: profile?.role || "Nutrition Enthusiast",
           calorieTarget: calories,
           proteinTarget: protein,
           carbsTarget: carbs,

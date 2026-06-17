@@ -52,7 +52,7 @@ const ProfileModule = {
     });
 
     // Populate initial avatar
-    const savedInitials = localStorage.getItem("user_avatar_initials") || "AM";
+    const savedInitials = localStorage.getItem("user_avatar_initials") || "U";
     const userProfileBtn = document.getElementById("user-profile-btn");
     if (userProfileBtn) userProfileBtn.innerText = savedInitials;
     avatarItems.forEach(item => {
@@ -95,14 +95,35 @@ const ProfileModule = {
     const sidebarName = document.querySelector(".sidebar .user-name");
     const sidebarRole = document.querySelector(".sidebar .user-role");
     
-    if (sidebarName) sidebarName.innerText = name;
-    if (sidebarRole) sidebarRole.innerText = role;
+    const displayName = name || "User";
+    const displayRole = role || "Nutrition Enthusiast";
+    
+    if (sidebarName) sidebarName.innerText = displayName;
+    if (sidebarRole) sidebarRole.innerText = displayRole;
 
     const dashGreeting = document.getElementById("dashboard-greeting");
     if (dashGreeting) {
       // Pick first name
-      const firstName = name.split(" ")[0];
+      const firstName = displayName.split(" ")[0];
       dashGreeting.innerText = `Good morning, ${firstName}!`;
+    }
+
+    // Dynamically update avatar initials if it's set to default AM or U
+    const userProfileBtn = document.getElementById("user-profile-btn");
+    if (userProfileBtn) {
+      const savedInitials = localStorage.getItem("user_avatar_initials");
+      if (!savedInitials || savedInitials === "AM" || savedInitials === "U") {
+        let initials = "U";
+        if (name) {
+          const parts = name.trim().split(/\s+/);
+          if (parts.length > 1) {
+            initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+          } else if (parts.length === 1 && parts[0]) {
+            initials = parts[0][0].toUpperCase();
+          }
+        }
+        userProfileBtn.innerText = initials;
+      }
     }
   },
 
@@ -158,7 +179,7 @@ const ProfileModule = {
         document.getElementById("profile-input-protein").value = profile.protein_target || 130;
         document.getElementById("profile-input-carbs").value = profile.carbs_target || 220;
         document.getElementById("profile-input-fats").value = profile.fats_target || 65;
-        this.syncNameLabels(profile.full_name || "Alex Miller", profile.role || "Nutrition Enthusiast");
+        this.syncNameLabels(profile.full_name || "", profile.role || "");
       }
     } else {
       authStatusBox.innerHTML = `
@@ -175,13 +196,13 @@ const ProfileModule = {
 
   populateLocalSettings() {
     const settings = State.data.settings;
-    document.getElementById("profile-input-name").value = "Alex Miller";
-    document.getElementById("profile-input-role").value = "Nutrition Pro";
+    document.getElementById("profile-input-name").value = "";
+    document.getElementById("profile-input-role").value = "";
     document.getElementById("profile-input-calories").value = settings.calories;
     document.getElementById("profile-input-protein").value = settings.protein;
     document.getElementById("profile-input-carbs").value = settings.carbs;
     document.getElementById("profile-input-fats").value = settings.fats;
-    this.syncNameLabels("Alex Miller", "Nutrition Pro");
+    this.syncNameLabels("", "");
   },
 
   render() {

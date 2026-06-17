@@ -417,13 +417,13 @@ const SupabaseService = {
     
     console.log("Initializing database for user:", userId);
     
-    // 1. Create Profile row
+    // Create Profile row only (no seed data)
     const { error: profileError } = await this.client
       .from("profiles")
       .upsert({
         id: userId,
-        full_name: fullName || "Alex Miller",
-        role: "Nutrition Pro",
+        full_name: fullName || "",
+        role: "Nutrition Enthusiast",
         calorie_target: 2000,
         protein_target: 130,
         carbs_target: 220,
@@ -434,128 +434,6 @@ const SupabaseService = {
     if (profileError) {
       console.error("Error creating user profile in Supabase:", profileError);
     }
-
-    // 2. Prepopulate default recipes
-    const defaultRecipes = window.State ? window.State.DEFAULT_RECIPES : [];
-    const recipeIdMap = {}; // mapping from local ID to cloud UUID
-    
-    for (let recipe of defaultRecipes) {
-      try {
-        const recipeRow = {
-          user_id: userId,
-          name: recipe.name,
-          description: recipe.description || "",
-          calories: Number(recipe.calories) || 0,
-          protein: Number(recipe.protein) || 0,
-          carbs: Number(recipe.carbs) || 0,
-          fats: Number(recipe.fats) || 0,
-          cook_time: Number(recipe.cookTime) || 15,
-          tags: recipe.tags || [],
-          ingredients: recipe.ingredients || [],
-          instructions: recipe.instructions || [],
-          image_url: recipe.imageUrl,
-          favorite: recipe.favorite || false
-        };
-        
-        const { data, error } = await this.client
-          .from("recipes")
-          .insert([recipeRow])
-          .select()
-          .single();
-          
-        if (error) {
-          console.error("Error seeding recipe:", recipe.name, error);
-        } else if (data) {
-          recipeIdMap[recipe.id] = data.id;
-        }
-      } catch (err) {
-        console.error("Error seeding recipe:", recipe.name, err);
-      }
-    }
-
-    // 3. Prepopulate weekly planner
-    const defaultPlanner = window.State ? window.State.DEFAULT_PLANNER : {};
-    const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-    const slots = ["breakfast", "lunch", "dinner", "snack"];
-    
-    const plannerRows = [];
-    for (let day of days) {
-      if (defaultPlanner[day]) {
-        for (let slot of slots) {
-          const meal = defaultPlanner[day][slot];
-          if (meal) {
-            const row = {
-              user_id: userId,
-              day_of_week: day,
-              meal_type: slot
-            };
-            
-            if (meal.id && recipeIdMap[meal.id]) {
-              row.recipe_id = recipeIdMap[meal.id];
-            } else {
-              row.custom_meal_data = {
-                id: meal.id || `custom-${Date.now()}`,
-                name: meal.name,
-                calories: Number(meal.calories) || 0,
-                protein: Number(meal.protein) || 0,
-                carbs: Number(meal.carbs) || 0,
-                fats: Number(meal.fats) || 0
-              };
-            }
-            plannerRows.push(row);
-          }
-        }
-      }
-    }
-    
-    if (plannerRows.length > 0) {
-      const { error: plannerError } = await this.client
-        .from("weekly_planner")
-        .insert(plannerRows);
-      if (plannerError) {
-        console.error("Error seeding weekly planner:", plannerError);
-      }
-    }
-
-    // 4. Prepopulate logged meals
-    const defaultLogs = window.State ? window.State.DEFAULT_LOGS : [];
-    const logRows = defaultLogs.map(logItem => ({
-      user_id: userId,
-      name: logItem.name,
-      calories: Number(logItem.calories) || 0,
-      protein: Number(logItem.protein) || 0,
-      carbs: Number(logItem.carbs) || 0,
-      fats: Number(logItem.fats) || 0,
-      tags: logItem.tags || [],
-      timestamp: logItem.timestamp || new Date().toISOString(),
-      meal_type: logItem.mealType || "lunch"
-    }));
-    
-    if (logRows.length > 0) {
-      const { error: logError } = await this.client
-        .from("logged_meals")
-        .insert(logRows);
-      if (logError) {
-        console.error("Error seeding logged meals:", logError);
-      }
-    }
-
-    // 5. Prepopulate reminders
-    const defaultReminders = window.State ? window.State.DEFAULT_REMINDERS : [];
-    const reminderRows = defaultReminders.map(rem => ({
-      user_id: userId,
-      text: rem.text,
-      completed: rem.completed || false
-    }));
-    
-    if (reminderRows.length > 0) {
-      const { error: reminderError } = await this.client
-        .from("reminders")
-        .insert(reminderRows);
-      if (reminderError) {
-        console.error("Error seeding reminders:", reminderError);
-      }
-    }
     
     console.log("Database initialization completed for user:", userId);
   }
@@ -564,8 +442,3 @@ const SupabaseService = {
 // Initialize immediately
 SupabaseService.init();
 window.SupabaseService = SupabaseService;
-
-// Listen for config changes
-window.addEventListener("supabaseConfigChanged", () => {
-  SupabaseService.init();
-});
