@@ -160,18 +160,18 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       isPageSignUpMode = !isPageSignUpMode;
       if (isPageSignUpMode) {
-        pageAuthTitle.innerText = "Create Cloud Account";
-        pageAuthSubtitle.innerText = "Join Sous-Chef Pro today and build your health plan.";
+        pageAuthTitle.innerText = "Create your account";
+        pageAuthSubtitle.innerText = "Join Sous-Chef Pro — we'll set up your personal cloud database.";
         pageAuthNameGroup.style.display = "flex";
-        pageAuthSubmitBtn.innerText = "Register & Initialize Database";
-        pageAuthToggleLink.innerText = "Already have an account? Sign In";
+        pageAuthSubmitBtn.innerHTML = '<span>Create Account</span><i class="fa-solid fa-arrow-right"></i>';
+        pageAuthToggleLink.innerHTML = 'Already have an account? <strong>Sign In</strong>';
         document.getElementById("page-auth-input-name").required = true;
       } else {
-        pageAuthTitle.innerText = "Sign In to Cloud Sync";
-        pageAuthSubtitle.innerText = "Sync your custom recipes, planner slots, and meal logs.";
+        pageAuthTitle.innerText = "Welcome back";
+        pageAuthSubtitle.innerText = "Sign in to sync your recipes, planner & meal logs.";
         pageAuthNameGroup.style.display = "none";
-        pageAuthSubmitBtn.innerText = "Sign In";
-        pageAuthToggleLink.innerText = "Don't have an account? Sign Up";
+        pageAuthSubmitBtn.innerHTML = '<span>Sign In</span><i class="fa-solid fa-arrow-right"></i>';
+        pageAuthToggleLink.innerHTML = 'Don\'t have an account? <strong>Sign Up</strong>';
         document.getElementById("page-auth-input-name").required = false;
       }
     });
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const name = document.getElementById("page-auth-input-name").value.trim();
 
       pageAuthSubmitBtn.disabled = true;
-      pageAuthSubmitBtn.innerText = isPageSignUpMode ? "Registering & Initializing..." : "Signing in...";
+      pageAuthSubmitBtn.innerHTML = isPageSignUpMode ? '<span>Creating account…</span>' : '<span>Signing in…</span>';
 
       try {
         if (isPageSignUpMode) {
@@ -201,7 +201,9 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Auth Error: " + error.message);
       } finally {
         pageAuthSubmitBtn.disabled = false;
-        pageAuthSubmitBtn.innerText = isPageSignUpMode ? "Register & Initialize Database" : "Sign In";
+        pageAuthSubmitBtn.innerHTML = isPageSignUpMode
+          ? '<span>Create Account</span><i class="fa-solid fa-arrow-right"></i>'
+          : '<span>Sign In</span><i class="fa-solid fa-arrow-right"></i>';
       }
     });
   }
