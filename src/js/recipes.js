@@ -470,30 +470,35 @@ const RecipesModule = {
       return;
     }
 
-    // Add to State
-    await State.addRecipe({
-      name: recipe.name,
-      description: recipe.description,
-      cookTime: recipe.cookTime,
-      calories: recipe.calories,
-      protein: recipe.protein,
-      carbs: recipe.carbs,
-      fats: recipe.fats,
-      tags: recipe.tags,
-      ingredients: recipe.ingredients,
-      instructions: recipe.instructions,
-      imageUrl: recipe.imageUrl
-    });
+    try {
+      // Add to State
+      await State.addRecipe({
+        name: recipe.name,
+        description: recipe.description,
+        cookTime: recipe.cookTime,
+        calories: recipe.calories,
+        protein: recipe.protein,
+        carbs: recipe.carbs,
+        fats: recipe.fats,
+        tags: recipe.tags,
+        ingredients: recipe.ingredients,
+        instructions: recipe.instructions,
+        imageUrl: recipe.imageUrl
+      });
 
-    alert(`Successfully imported "${recipe.name}" to your library!`);
-    
-    // Switch filter to "All" and render
-    const tabs = document.querySelectorAll("#recipe-filter-tabs .filter-tab");
-    tabs.forEach(t => {
-      if (t.getAttribute("data-filter") === "All") {
-        t.click();
-      }
-    });
+      alert(`Successfully imported "${recipe.name}" to your library!`);
+      
+      // Switch filter to "All" and render
+      const tabs = document.querySelectorAll("#recipe-filter-tabs .filter-tab");
+      tabs.forEach(t => {
+        if (t.getAttribute("data-filter") === "All") {
+          t.click();
+        }
+      });
+    } catch (err) {
+      console.error("Failed to import recipe:", err);
+      alert("Failed to import recipe: " + (err.message || err));
+    }
   },
 
   loadNifodaImporterRecipe(key) {
@@ -618,7 +623,7 @@ const RecipesModule = {
     }, 1500);
   },
 
-  submitImportedRecipe() {
+  async submitImportedRecipe() {
     const name = document.getElementById("import-name").value;
     const description = document.getElementById("import-desc").value;
     const cookTime = document.getElementById("import-time").value;
@@ -661,23 +666,28 @@ const RecipesModule = {
       mockImg = "./assets/garlic_butter_shrimp.jpg";
     }
 
-    State.addRecipe({
-      name,
-      description,
-      cookTime,
-      calories,
-      protein,
-      carbs,
-      fats,
-      tags: [primaryTag, cookTime < 30 ? "Under 30 Mins" : "Meal Prep"],
-      ingredients,
-      instructions,
-      imageUrl: mockImg
-    });
+    try {
+      await State.addRecipe({
+        name,
+        description,
+        cookTime,
+        calories,
+        protein,
+        carbs,
+        fats,
+        tags: [primaryTag, cookTime < 30 ? "Under 30 Mins" : "Meal Prep"],
+        ingredients,
+        instructions,
+        imageUrl: mockImg
+      });
 
-    closeModal("modal-recipe-import");
-    this.render();
-    alert(`Successfully added "${name}" to your library!`);
+      closeModal("modal-recipe-import");
+      this.render();
+      alert(`Successfully added "${name}" to your library!`);
+    } catch (err) {
+      console.error("Failed to add recipe:", err);
+      alert("Failed to add recipe: " + (err.message || err));
+    }
   }
 };
 
