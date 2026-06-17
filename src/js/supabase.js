@@ -5,7 +5,14 @@ const SupabaseService = {
   init() {
     if (Config.isConfigured() && window.supabase) {
       try {
-        this.client = window.supabase.createClient(Config.SUPABASE_URL, Config.SUPABASE_KEY);
+        let cleanUrl = Config.SUPABASE_URL.trim();
+        if (cleanUrl.endsWith("/rest/v1/")) {
+          cleanUrl = cleanUrl.slice(0, -9);
+        } else if (cleanUrl.endsWith("/rest/v1")) {
+          cleanUrl = cleanUrl.slice(0, -8);
+        }
+        
+        this.client = window.supabase.createClient(cleanUrl, Config.SUPABASE_KEY);
         this.setupAuthListener();
       } catch (e) {
         console.error("Error creating Supabase client: ", e);
