@@ -47,12 +47,21 @@ const ProfileModule = {
         item.classList.add("selected");
         const initials = item.innerText;
         document.getElementById("user-profile-btn").innerText = initials;
-        localStorage.setItem("user_avatar_initials", initials);
+        try {
+          localStorage.setItem("user_avatar_initials", initials);
+        } catch (e) {
+          console.warn("localStorage write failed:", e);
+        }
       });
     });
 
     // Populate initial avatar
-    const savedInitials = localStorage.getItem("user_avatar_initials") || "U";
+    let savedInitials = "U";
+    try {
+      savedInitials = localStorage.getItem("user_avatar_initials") || "U";
+    } catch (e) {
+      console.warn("localStorage read failed:", e);
+    }
     const userProfileBtn = document.getElementById("user-profile-btn");
     if (userProfileBtn) userProfileBtn.innerText = savedInitials;
     avatarItems.forEach(item => {
@@ -111,7 +120,12 @@ const ProfileModule = {
     // Dynamically update avatar initials if it's set to default AM or U
     const userProfileBtn = document.getElementById("user-profile-btn");
     if (userProfileBtn) {
-      const savedInitials = localStorage.getItem("user_avatar_initials");
+      let savedInitials = null;
+      try {
+        savedInitials = localStorage.getItem("user_avatar_initials");
+      } catch (e) {
+        console.warn("localStorage read failed:", e);
+      }
       if (!savedInitials || savedInitials === "AM" || savedInitials === "U") {
         let initials = "U";
         if (name) {

@@ -82,7 +82,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Dark/Light Theme Switcher
   const themeToggle = document.getElementById("dark-theme-toggle");
-  const savedTheme = localStorage.getItem("sous_chef_theme") || "light";
+  let savedTheme = "light";
+  try {
+    savedTheme = localStorage.getItem("sous_chef_theme") || "light";
+  } catch (e) {
+    console.warn("localStorage read failed:", e);
+  }
 
   if (savedTheme === "dark") {
     document.documentElement.setAttribute("data-theme", "dark");
@@ -95,10 +100,18 @@ document.addEventListener("DOMContentLoaded", () => {
   themeToggle.addEventListener("change", () => {
     if (themeToggle.checked) {
       document.documentElement.setAttribute("data-theme", "dark");
-      localStorage.setItem("sous_chef_theme", "dark");
+      try {
+        localStorage.setItem("sous_chef_theme", "dark");
+      } catch (e) {
+        console.warn("localStorage write failed:", e);
+      }
     } else {
       document.documentElement.removeAttribute("data-theme");
-      localStorage.setItem("sous_chef_theme", "light");
+      try {
+        localStorage.setItem("sous_chef_theme", "light");
+      } catch (e) {
+        console.warn("localStorage write failed:", e);
+      }
     }
   });
 

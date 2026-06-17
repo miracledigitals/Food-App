@@ -15,25 +15,29 @@ const State = {
   },
 
   init() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
         this.data = JSON.parse(saved);
         // Guarantee settings exist
         if (!this.data.settings) {
           this.data.settings = { calories: 2000, protein: 130, carbs: 220, fats: 65 };
         }
-      } catch (e) {
-        console.error("Error loading state from localStorage, resetting", e);
+      } else {
         this.resetToDefault();
       }
-    } else {
+    } catch (e) {
+      console.warn("Error loading state from localStorage, using in-memory state:", e);
       this.resetToDefault();
     }
   },
 
   save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+    } catch (e) {
+      console.warn("Error saving state to localStorage:", e);
+    }
     // Trigger custom event so modules know data changed
     window.dispatchEvent(new CustomEvent("stateUpdated"));
   },
