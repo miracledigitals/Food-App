@@ -17,6 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Navigation Routing
   const navItems = document.querySelectorAll(".nav-menu .nav-item");
   const viewSections = document.querySelectorAll(".view-section");
+  const sidebar = document.querySelector(".sidebar");
+  const overlay = document.getElementById("sidebar-overlay");
+
+  function closeMobileMenu() {
+    if (sidebar) sidebar.classList.remove("open");
+    if (overlay) overlay.classList.remove("open");
+  }
 
   function switchView(viewName) {
     // Deactivate all nav menu items and sections
@@ -36,6 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    // Close slide drawer on view transition
+    closeMobileMenu();
+
     // Run custom section load hooks if any
     triggerSectionReload(viewName);
   }
@@ -52,6 +62,21 @@ document.addEventListener("DOMContentLoaded", () => {
   if (sidebarFooterUser) {
     sidebarFooterUser.addEventListener("click", () => {
       switchView("profile");
+    });
+  }
+
+  // Mobile Hamburger & Backdrop toggle triggers
+  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+  if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener("click", () => {
+      if (sidebar) sidebar.classList.add("open");
+      if (overlay) overlay.classList.add("open");
+    });
+  }
+
+  if (overlay) {
+    overlay.addEventListener("click", () => {
+      closeMobileMenu();
     });
   }
 

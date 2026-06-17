@@ -760,7 +760,7 @@ input:checked + .slider:before {
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -1477,4 +1477,209 @@ input[type="checkbox"] {
 #profile-btn-show-login-direct, #profile-btn-logout-direct {
   margin-top: 4px;
 }
+
+/* ==========================================================================
+   MOBILE & TABLET RESPONSIVE STYLING (max-width: 768px)
+   ========================================================================== */
+#mobile-header {
+  display: none;
+}
+#sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Layout modifications */
+  #mobile-header {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    background-color: var(--bg-sidebar);
+    color: white;
+    padding: 0 16px;
+    z-index: 50;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  #mobile-menu-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    margin-right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-brand-name {
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .app-container {
+    flex-direction: column;
+  }
+
+  /* Main content shifts down for header and decreases padding */
+  .main-content {
+    padding: 80px 16px 32px 16px;
+    gap: 16px;
+  }
+
+  .content-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-actions {
+    width: 100%;
+    gap: 8px;
+  }
+  
+  .header-actions .btn {
+    flex-grow: 1;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  /* Sidebar transforms into offscreen slide drawer */
+  .sidebar {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    width: 260px;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.25);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Overlay cover backdrop */
+  #sidebar-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 90;
+    display: none;
+  }
+
+  #sidebar-overlay.open {
+    display: block;
+  }
+
+  /* Grids and Panels transform into single column stacks */
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .dashboard-sidebar {
+    gap: 16px;
+  }
+
+  .dashboard-summary-bar {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .calendar-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .logger-container {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .recipes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .grocery-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  /* Weekly grid Horizontal Scroll */
+  .planner-container {
+    min-width: 0;
+  }
+
+  /* Weekly grid Horizontal Scroll */
+  .planner-grid-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-md);
+  }
+
+  .meal-grid-header, .meal-grid-row {
+    min-width: 750px;
+  }
+
+  /* Modals width */
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  /* Card padding reduction */
+  .card {
+    padding: 16px;
+  }
+
+  /* Reduce calendar cell padding on mobile */
+  .calendar-day-cell {
+    padding: 4px;
+  }
+
+  /* Make recipe filter tabs horizontally scrollable */
+  .filter-tabs {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .filter-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-summary-bar {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-group.full-width {
+    grid-column: span 1;
+  }
+}
+
 

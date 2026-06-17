@@ -12,6 +12,18 @@
   <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
+
+  <!-- Mobile Header Top Bar -->
+  <header id="mobile-header">
+    <button id="mobile-menu-btn" title="Open Menu"><i class="fa-solid fa-bars"></i></button>
+    <span class="mobile-brand-name">
+      <i class="fa-solid fa-utensils" style="margin-right: 6px;"></i>Sous-Chef Pro
+    </span>
+  </header>
+
+  <!-- Sidebar Overlay Backdrop for Mobile Drawer -->
+  <div id="sidebar-overlay"></div>
+
   <div class="app-container">
     
     <!-- Sidebar Navigation -->
@@ -126,63 +138,65 @@
               <span class="badge badge-primary" id="dashboard-plan-status">12 / 28 Slots Planned</span>
             </div>
             
-            <div class="meal-grid-header">
-              <div>Meal</div>
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
-              <div>Sun</div>
-            </div>
-            
-            <!-- Breakfast Row -->
-            <div class="meal-grid-row" id="row-breakfast">
-              <div class="meal-row-label"><i class="fa-solid fa-mug-saucer" style="margin-right: 8px; color: var(--primary-tint);"></i>Breakfast</div>
-              <div class="meal-cell" data-day="monday" data-type="breakfast"></div>
-              <div class="meal-cell" data-day="tuesday" data-type="breakfast"></div>
-              <div class="meal-cell" data-day="wednesday" data-type="breakfast"></div>
-              <div class="meal-cell" data-day="thursday" data-type="breakfast"></div>
-              <div class="meal-cell" data-day="friday" data-type="breakfast"></div>
-              <div class="meal-cell" data-day="saturday" data-type="breakfast"></div>
-              <div class="meal-cell" data-day="sunday" data-type="breakfast"></div>
-            </div>
-            
-            <!-- Lunch Row -->
-            <div class="meal-grid-row" id="row-lunch">
-              <div class="meal-row-label"><i class="fa-solid fa-bowl-salad" style="margin-right: 8px; color: var(--primary-tint);"></i>Lunch</div>
-              <div class="meal-cell" data-day="monday" data-type="lunch"></div>
-              <div class="meal-cell" data-day="tuesday" data-type="lunch"></div>
-              <div class="meal-cell" data-day="wednesday" data-type="lunch"></div>
-              <div class="meal-cell" data-day="thursday" data-type="lunch"></div>
-              <div class="meal-cell" data-day="friday" data-type="lunch"></div>
-              <div class="meal-cell" data-day="saturday" data-type="lunch"></div>
-              <div class="meal-cell" data-day="sunday" data-type="lunch"></div>
-            </div>
-            
-            <!-- Dinner Row -->
-            <div class="meal-grid-row" id="row-dinner">
-              <div class="meal-row-label"><i class="fa-solid fa-utensils" style="margin-right: 8px; color: var(--primary-tint);"></i>Dinner</div>
-              <div class="meal-cell" data-day="monday" data-type="dinner"></div>
-              <div class="meal-cell" data-day="tuesday" data-type="dinner"></div>
-              <div class="meal-cell" data-day="wednesday" data-type="dinner"></div>
-              <div class="meal-cell" data-day="thursday" data-type="dinner"></div>
-              <div class="meal-cell" data-day="friday" data-type="dinner"></div>
-              <div class="meal-cell" data-day="saturday" data-type="dinner"></div>
-              <div class="meal-cell" data-day="sunday" data-type="dinner"></div>
-            </div>
-            
-            <!-- Snacks Row -->
-            <div class="meal-grid-row" id="row-snack">
-              <div class="meal-row-label"><i class="fa-solid fa-apple-whole" style="margin-right: 8px; color: var(--primary-tint);"></i>Snacks</div>
-              <div class="meal-cell" data-day="monday" data-type="snack"></div>
-              <div class="meal-cell" data-day="tuesday" data-type="snack"></div>
-              <div class="meal-cell" data-day="wednesday" data-type="snack"></div>
-              <div class="meal-cell" data-day="thursday" data-type="snack"></div>
-              <div class="meal-cell" data-day="friday" data-type="snack"></div>
-              <div class="meal-cell" data-day="saturday" data-type="snack"></div>
-              <div class="meal-cell" data-day="sunday" data-type="snack"></div>
+            <div class="planner-grid-wrapper">
+              <div class="meal-grid-header">
+                <div>Meal</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+                <div>Sun</div>
+              </div>
+              
+              <!-- Breakfast Row -->
+              <div class="meal-grid-row" id="row-breakfast">
+                <div class="meal-row-label"><i class="fa-solid fa-mug-saucer" style="margin-right: 8px; color: var(--primary-tint);"></i>Breakfast</div>
+                <div class="meal-cell" data-day="monday" data-type="breakfast"></div>
+                <div class="meal-cell" data-day="tuesday" data-type="breakfast"></div>
+                <div class="meal-cell" data-day="wednesday" data-type="breakfast"></div>
+                <div class="meal-cell" data-day="thursday" data-type="breakfast"></div>
+                <div class="meal-cell" data-day="friday" data-type="breakfast"></div>
+                <div class="meal-cell" data-day="saturday" data-type="breakfast"></div>
+                <div class="meal-cell" data-day="sunday" data-type="breakfast"></div>
+              </div>
+              
+              <!-- Lunch Row -->
+              <div class="meal-grid-row" id="row-lunch">
+                <div class="meal-row-label"><i class="fa-solid fa-bowl-salad" style="margin-right: 8px; color: var(--primary-tint);"></i>Lunch</div>
+                <div class="meal-cell" data-day="monday" data-type="lunch"></div>
+                <div class="meal-cell" data-day="tuesday" data-type="lunch"></div>
+                <div class="meal-cell" data-day="wednesday" data-type="lunch"></div>
+                <div class="meal-cell" data-day="thursday" data-type="lunch"></div>
+                <div class="meal-cell" data-day="friday" data-type="lunch"></div>
+                <div class="meal-cell" data-day="saturday" data-type="lunch"></div>
+                <div class="meal-cell" data-day="sunday" data-type="lunch"></div>
+              </div>
+              
+              <!-- Dinner Row -->
+              <div class="meal-grid-row" id="row-dinner">
+                <div class="meal-row-label"><i class="fa-solid fa-utensils" style="margin-right: 8px; color: var(--primary-tint);"></i>Dinner</div>
+                <div class="meal-cell" data-day="monday" data-type="dinner"></div>
+                <div class="meal-cell" data-day="tuesday" data-type="dinner"></div>
+                <div class="meal-cell" data-day="wednesday" data-type="dinner"></div>
+                <div class="meal-cell" data-day="thursday" data-type="dinner"></div>
+                <div class="meal-cell" data-day="friday" data-type="dinner"></div>
+                <div class="meal-cell" data-day="saturday" data-type="dinner"></div>
+                <div class="meal-cell" data-day="sunday" data-type="dinner"></div>
+              </div>
+              
+              <!-- Snacks Row -->
+              <div class="meal-grid-row" id="row-snack">
+                <div class="meal-row-label"><i class="fa-solid fa-apple-whole" style="margin-right: 8px; color: var(--primary-tint);"></i>Snacks</div>
+                <div class="meal-cell" data-day="monday" data-type="snack"></div>
+                <div class="meal-cell" data-day="tuesday" data-type="snack"></div>
+                <div class="meal-cell" data-day="wednesday" data-type="snack"></div>
+                <div class="meal-cell" data-day="thursday" data-type="snack"></div>
+                <div class="meal-cell" data-day="friday" data-type="snack"></div>
+                <div class="meal-cell" data-day="saturday" data-type="snack"></div>
+                <div class="meal-cell" data-day="sunday" data-type="snack"></div>
+              </div>
             </div>
           </div>
           
@@ -923,7 +937,6 @@
       <form id="auth-form">
         <div class="modal-body">
           <div style="display: flex; flex-direction: column; gap: 14px;">
-            <!-- Sign Up name field (hidden during sign in) -->
             <div class="form-group" id="auth-group-name" style="display: none;">
               <label class="form-label" for="auth-input-name">Full Name</label>
               <input type="text" class="form-input" id="auth-input-name" placeholder="Alex Miller">
